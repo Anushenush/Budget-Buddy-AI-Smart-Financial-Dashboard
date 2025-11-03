@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Budget Buddy – Smart Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    /* ===========================
+   GLOBAL THEME
+=========================== */
+:root {
+  --purple1: #7c3aed;
+  --purple10: #00eeff;
+  --purple2: #a855f7;
+  --purple3: #c084fc;
+  --dark-bg: #1a1528;
+  --light-bg: rgba(255, 255, 255, 0.1);
+  --text-light: #f8f8ff;
+  --text-dim: #d1c4e9;
+  --accent: #e9d5ff;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: radial-gradient(circle at top left, #2e1a47, #1a1528);
+  color: var(--text-light);
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+/* ===========================
+   HEADER
+=========================== */
+header {
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(90deg, var(--purple2), var(--purple10), var(--purple3));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+header h1 {
+  font-size: 2.4rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+header p {
+  font-size: 1.1rem;
+  color: var(--text-dim);
+}
+
+/* ===========================
+   CONTAINER & CARD
+=========================== */
+.container {
+  width: 90%;
+  max-width: 1100px;
+  margin: 2rem auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.card {
+  background: var(--light-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 1.8rem;
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(124, 58, 237, 0.4);
+}
+
+/* ===========================
+   SUMMARY CARD
+=========================== */
+.summary {
+  text-align: center;
+}
+
+.summary h2 {
+  color: var(--accent);
+  font-size: 1.6rem;
+}
+
+.summary p {
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+  color: var(--text-light);
+}
+
+.summary a {
+  display: inline-block;
+  margin-top: 1rem;
+  text-decoration: none;
+  color: white;
+  background: linear-gradient(90deg, var(--purple1), var(--purple2));
+  padding: 0.6rem 1.2rem;
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.summary a:hover {
+  background: linear-gradient(90deg, var(--purple2), var(--purple3));
+}
+
+/* ===========================
+   FLEX CHART AREA
+=========================== */
+/* ===========================
+   CHART FIXES
+=========================== */
+.chart {
+  flex: 1;
+  min-width: 300px;
+  max-width: 48%;
+  overflow: hidden; /* Prevent charts from overflowing */
+  background: var(--light-bg);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+/* When screen is small, stack charts vertically */
+@media (max-width: 768px) {
+  .flex {
+    flex-direction: column;
+  }
+  .chart {
+    max-width: 100%;
+  }
+}
+
+/* Optional: ensure Plotly charts scale properly */
+.js-plotly-plot, .plot-container, .plotly {
+  width: 100% !important;
+  height: auto !important;
+}
+
+
+/* ===========================
+   SUGGESTIONS LIST
+=========================== */
+.suggestions {
+  list-style: none;
+  padding: 0;
+}
+
+.suggestions li {
+  background: rgba(124, 58, 237, 0.15);
+  border-left: 4px solid var(--purple2);
+  margin: 0.6rem 0;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  color: var(--text-light);
+  font-size: 1rem;
+}
+
+/* ===========================
+   FOOTER
+=========================== */
+footer {
+  text-align: center;
+  padding: 1.2rem;
+  background: #1a1423;
+  color: #c3b4f3;
+  font-size: 0.9rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>💰 Budget Buddy – Smart Financial Dashboard</h1>
+  <p>Track, analyze, and improve your spending with AI insights</p>
+</header>
+
+<div class="container">
+
+  <div class="card summary">
+    <h2>📊 Monthly Overview</h2>
+    <p><b>Income:</b> ₹{{ summary.income }}</p>
+    <p><b>Total Expense:</b> ₹{{ summary.total_expense }}</p>
+    <p><b>Current Savings:</b> ₹{{ summary.savings }}</p>
+    <p><b>Transactions:</b> {{ summary.num_transactions }}</p>
+    <a href="/expenses">➕ Add New Expense</a>
+  </div>
+
+  <div class="flex">
+    <div class="card chart">
+      <h3>Spending by Category (Pie)</h3>
+      {{ pie_chart | safe }}
+    </div>
+
+    <div class="card chart">
+      <h3>Spending per Category (Bar)</h3>
+      {{ bar_chart | safe }}
+    </div>
+  </div>
+
+  <div class="card chart">
+    <h3>Daily Spending Trend</h3>
+    {{ line_chart | safe }}
+  </div>
+
+  <div class="card">
+    <h2>🤖 AI-Powered Recommendations</h2>
+    {% if suggestions %}
+      <ul class="suggestions">
+        {% for s in suggestions %}
+          <li>{{ s }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No insights yet. Add some expenses to see smart suggestions!</p>
+    {% endif %}
+  </div>
+
+</div>
+
+<footer>
+  <p>© 2025 Budget Buddy AI | Built for Youth Coders Hack 2025</p>
+</footer>
+
+</body>
+</html>
